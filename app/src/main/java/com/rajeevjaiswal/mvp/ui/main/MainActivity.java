@@ -10,7 +10,9 @@ import android.support.v7.widget.SearchView;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.rajeevjaiswal.mvp.R;
@@ -39,7 +41,11 @@ public class MainActivity extends BaseActivity implements MainMvpView {
     @BindView(R.id.contact_recycler_view)
     RecyclerView  mRecyclerView;
 
+    @BindView(R.id.progress_bar)
+    ProgressBar progressBar;
+
     private SearchView searchView;
+    private String searchQuery = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,11 +78,14 @@ public class MainActivity extends BaseActivity implements MainMvpView {
         mRecyclerView.addOnScrollListener(new EndlessRecyclerViewScrollListener(mLayoutManager) {
             @Override
             public void onLoadMore(int page, int totalItemsCount, RecyclerView view) {
-                Log.d("page",""+page);
-                mPresenter.onLoadNextPage(page);
+                if(searchQuery.length() < 1){
+                    mPresenter.onLoadNextPage(page);
+                }
             }
 
         });
+
+
     }
 
 
@@ -104,20 +113,45 @@ public class MainActivity extends BaseActivity implements MainMvpView {
         mImageAdapter.addItems(photos);
     }
 
+    @Override
+    public void showLazyLoading() {
+        progressBar.setVisibility(View.VISIBLE);
+    }
+
+    @Override
+    public void hideLazyLoading() {
+        progressBar.setVisibility(View.GONE);
+    }
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_main, menu);
 
         // Associate searchable configuration with the SearchView
-        SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
-        searchView = (SearchView) menu.findItem(R.id.action_search)
-                .getActionView();
-        searchView.setSearchableInfo(searchManager
-                .getSearchableInfo(getComponentName()));
-        searchView.setMaxWidth(Integer.MAX_VALUE);
+        initSearchView(menu);
 
         // listening to search query text change
+        setUpSearchListener();
+
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+
+        int id = item.getItemId();
+
+        //noinspection SimplifiableIfStatement
+        if (id == R.id.action_search) {
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    private void setUpSearchListener() {
+
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
@@ -129,32 +163,30 @@ public class MainActivity extends BaseActivity implements MainMvpView {
             @Override
             public boolean onQueryTextChange(String query) {
                 // filter recycler view when text is changed
+                searchQuery = query;
                 mImageAdapter.getFilter().filter(query);
                 return false;
             }
         });
-        return true;
     }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
+    private void initSearchView(Menu menu) {
 
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_search) {
-            return true;
-        }
+        SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
+        searchView = (SearchView) menu.findItem(R.id.action_search)
+                .getActionView();
+        searchView.setSearchableInfo(searchManager
+                .getSearchableInfo(getComponentName()));
+        searchView.setMaxWidth(Integer.MAX_VALUE);
 
-        return super.onOptionsItemSelected(item);
     }
 
     @Override
     public void onBackPressed() {
+
         // close search view on back button pressed
         if (!searchView.isIconified()) {
+            searchQuery = "";
             searchView.setIconified(true);
             return;
         }

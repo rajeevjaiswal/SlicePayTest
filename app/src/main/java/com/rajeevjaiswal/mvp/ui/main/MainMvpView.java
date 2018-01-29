@@ -13,4 +13,6 @@ import java.util.List;
 public interface MainMvpView extends MvpView {
 
     void updateImages(List<Photo> photos);
+    void showLazyLoading();
+    void hideLazyLoading();
 }

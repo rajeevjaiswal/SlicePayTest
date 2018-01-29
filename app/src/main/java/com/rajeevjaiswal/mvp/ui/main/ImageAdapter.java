@@ -58,7 +58,8 @@ public class ImageAdapter extends RecyclerView.Adapter<BaseViewHolder> implement
 
     public void addItems(List<Photo> photos) {
         mPhotosFiltered.addAll(photos);
-        notifyDataSetChanged();
+//        notifyDataSetChanged();
+        notifyItemInserted(mPhotosFiltered.size() - 1);
     }
 
     public List<Photo> getPhotos() {

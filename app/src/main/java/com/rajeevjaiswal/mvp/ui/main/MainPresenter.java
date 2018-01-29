@@ -49,7 +49,8 @@ public class MainPresenter<V extends MainMvpView> extends BasePresenter<V> imple
     @Override
     public void fetchImages() {
 
-        getMvpView().showLoading(R.string.loading_images);
+        showLoading();
+
         Map<String, String> queryMap = new HashMap<>();
         queryMap.put(QUERY_PARAM_METHOD, PHOTOS_ENDPOINT);
         queryMap.put(QUERY_PARAM_API_KEY, API_KEY);
@@ -67,13 +68,13 @@ public class MainPresenter<V extends MainMvpView> extends BasePresenter<V> imple
 
                         getMvpView().updateImages(response.body().getPhotos().getPhoto());
                     }
-                    getMvpView().hideLoading();
+                    hideLoading();
                 }
 
                 @Override
                 public void onFailure(Call<PhotoResponse> call, Throwable t) {
 
-                    getMvpView().hideLoading();
+                    hideLoading();
 
                 }
             });
@@ -84,6 +85,23 @@ public class MainPresenter<V extends MainMvpView> extends BasePresenter<V> imple
     public void onLoadNextPage(int page) {
         this.page = page + 1;
         fetchImages();
+    }
+
+
+    private void showLoading(){
+        if(page > 1){
+            getMvpView().showLazyLoading();
+        }else {
+            getMvpView().showLoading(R.string.loading_images);
+        }
+    }
+
+    private void hideLoading(){
+        if(page > 1){
+            getMvpView().hideLazyLoading();
+        }else {
+            getMvpView().hideLoading();
+        }
     }
 
 }
